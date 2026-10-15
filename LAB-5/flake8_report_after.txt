@@ -1,0 +1,1 @@
+dairy_collection.py:50:80: E501 line too long (88 > 79 characters)
