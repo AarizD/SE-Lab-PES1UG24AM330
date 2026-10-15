@@ -8,7 +8,9 @@ conn.execute("CREATE TABLE milk (id INTEGER PRIMARY KEY, farmer TEXT, litres REA
 
 
 def recordMilk(conn, farmer, litres, fat, day):
-    conn.execute("INSERT INTO milk (farmer, litres, fat, day) VALUES (?, ?, ?, ?)", (farmer, litres, fat, day))
+    conn.execute(
+        "INSERT INTO milk (farmer, litres, fat, day) VALUES (?, ?, ?, ?)",
+        (farmer, litres, fat, day))
     conn.commit()
 
 
@@ -17,12 +19,15 @@ def farmerToken(farmer):
 
 
 def dailyTotal(conn, day):
-    rows = conn.execute("SELECT litres FROM milk WHERE day = ?", (day,)).fetchall()
+    rows = conn.execute(
+        "SELECT litres FROM milk WHERE day = ?",
+        (day,)).fetchall()
     return "Total: %.1f litres" % sum(row[0] for row in rows)
 
 
 def topFarmer(conn):
-    rows = conn.execute("SELECT farmer, SUM(litres) FROM milk GROUP BY farmer").fetchall()
+    rows = conn.execute(
+        "SELECT farmer, SUM(litres) FROM milk GROUP BY farmer").fetchall()
     top = max(rows, key=lambda r: r[1])
     return top[0]
 
