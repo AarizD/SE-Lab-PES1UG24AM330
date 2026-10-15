@@ -1,6 +1,5 @@
 import hashlib
 import subprocess
-import json
 import os
 import sqlite3
 
@@ -19,13 +18,13 @@ def farmerToken(farmer):
 
 def dailyTotal(conn, day):
     rows = conn.execute("SELECT litres FROM milk WHERE day = ?", (day,)).fetchall()
-    return "Total: %.1f litres" % sum(r[0] for r in rows)
+    return "Total: %.1f litres" % sum(row[0] for row in rows)
 
 
 def topFarmer(conn):
     rows = conn.execute("SELECT farmer, SUM(litres) FROM milk GROUP BY farmer").fetchall()
-    l = max(rows, key=lambda r: r[1])
-    return l[0]
+    top = max(rows, key=lambda r: r[1])
+    return top[0]
 
 
 def printSlip(farmer):
@@ -34,7 +33,7 @@ def printSlip(farmer):
 
 def lowFat(conn):
     rows = conn.execute("SELECT farmer, fat FROM milk").fetchall()
-    return [f for f, fat in rows if fat == None or fat < 3.5]
+    return [f for f, fat in rows if fat is None or fat < 3.5]
 
 
 def main():
