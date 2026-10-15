@@ -1,52 +1,66 @@
+"""Module for managing and analyzing dairy collection records."""
+
 import hashlib
 import subprocess
-import os
 import sqlite3
 
 conn = sqlite3.connect(":memory:")
-conn.execute("CREATE TABLE milk (id INTEGER PRIMARY KEY, farmer TEXT, litres REAL, fat REAL, day TEXT)")
+conn.execute(
+    "CREATE TABLE milk (id INTEGER PRIMARY KEY, farmer TEXT,"
+    " litres REAL, fat REAL, day TEXT)"
+    )
 
 
-def recordMilk(conn, farmer, litres, fat, day):
-    conn.execute(
+def record_milk(dconn, farmer, litres, fat, day):
+    """Record a new milk collection entry for a farmer into the database."""
+    dconn.execute(
         "INSERT INTO milk (farmer, litres, fat, day) VALUES (?, ?, ?, ?)",
         (farmer, litres, fat, day))
-    conn.commit()
+    dconn.commit()
 
 
-def farmerToken(farmer):
+def farmer_token(farmer):
+    """Generate a secure SHA-256 token identifier for a given farmer."""
     return hashlib.sha256(farmer.encode()).hexdigest()
 
 
-def dailyTotal(conn, day):
-    rows = conn.execute(
+def daily_total(dconn, day):
+    """Calculate the total litres of milk collected on a specific day."""
+    rows = dconn.execute(
         "SELECT litres FROM milk WHERE day = ?",
         (day,)).fetchall()
-    return "Total: %.1f litres" % sum(row[0] for row in rows)
+    return f"Total: {sum(row[0] for row in rows):.1f} litres"
 
 
-def topFarmer(conn):
-    rows = conn.execute(
-        "SELECT farmer, SUM(litres) FROM milk GROUP BY farmer").fetchall()
+def top_farmer(dconn):
+    """Identify the farmer with the highest total milk collection."""
+    rows = dconn.execute(
+        "SELECT farmer, SUM(litres) FROM milk GROUP BY farmer"
+    ).fetchall()
     top = max(rows, key=lambda r: r[1])
     return top[0]
 
 
-def printSlip(farmer):
+def print_slip(farmer):
+    """Print a slip for the specified farmer using a subprocess call."""
     subprocess.run(["echo", f"printing slip for {farmer}"], check=True)
 
 
-def lowFat(conn):
-    rows = conn.execute("SELECT farmer, fat FROM milk").fetchall()
+def low_fat(dconn):
+    """Return a list of farmers whose milk fat content is below 3.5% or not recorded."""
+    rows = dconn.execute(
+        "SELECT farmer, fat FROM milk"
+    ).fetchall()
     return [f for f, fat in rows if fat is None or fat < 3.5]
 
 
 def main():
-    recordMilk(conn, "Gopal", 12.5, 4.1, "Mon")
-    recordMilk(conn, "Lata", 20.0, 3.2, "Mon")
-    print(dailyTotal(conn, "Mon"), topFarmer(conn), lowFat(conn))
-    printSlip("Gopal")
-    print(farmerToken("Lata"))
+    """Main function to demonstrate the dairy collection functionalities."""
+    record_milk(conn, "Gopal", 12.5, 4.1, "Mon")
+    record_milk(conn, "Lata", 20.0, 3.2, "Mon")
+    print(daily_total(conn, "Mon"), top_farmer(conn), low_fat(conn))
+    print_slip("Gopal")
+    print(farmer_token("Lata"))
 
 
 main()
